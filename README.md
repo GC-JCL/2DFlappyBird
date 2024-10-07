@@ -7,7 +7,8 @@ Welcome to Flappy Bird Remastered: IoT Edition! This is an improved version of t
 Features
 
 - Classic Flappy Bird Game-play: Exciting and addictive game-play in which the player gets to guide their bird through obstacles by tapping or via motion. 
-- Integration with IoT: This will make it possible for players to control their character in the game with the use of IoT sensors, such as motion detectors, pressure pads, or even smart wearables. Cybersecurity Concepts: It includes some concepts showing how IoT devices may be under threat and how such threats could be prevented by secure coding.
+- Integration with IoT: This will make it possible for players to control their character in the game with the use of IoT sensors, such as motion detectors, pressure pads, or even smart wearables.
+- Cybersecurity Concepts: It includes some concepts showing how IoT devices may be under threat and how such threats could be prevented by secure coding.
 - Real Time Data: The game captures sensor data in real time and translates it into physical movements within the game.
 
 Cybersecurity Integration
