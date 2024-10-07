@@ -1,4 +1,4 @@
-2D Flappy Bird Remastered: IoT Edition
+2D Flappy Bird: IoT Edition
 
 Overview
 
