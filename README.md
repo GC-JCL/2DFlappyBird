@@ -2,7 +2,7 @@
 
 Overview
 
-Welcome to Flappy Bird Remastered: IoT Edition! This is an improved version of the popular 2D arcade game "Flappy Bird," specially tailored for our Level 3 Cybersecurity Course project. Herein is a small project, which integrates IoT devices into gaming. To indulge in immersive interaction, control the bird with IoT sensors.
+Welcome to Flappy Bird: IoT Edition! This is an improved version of the popular 2D arcade game "Flappy Bird," specially tailored for our Level 3 Cybersecurity Course project. Herein is a small project, which integrates IoT devices into gaming. To indulge in immersive interaction, control the bird with IoT sensors.
 
 Features
 
