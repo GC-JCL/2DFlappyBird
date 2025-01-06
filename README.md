@@ -2,7 +2,7 @@
 
 ## Dependence:
 * pygame
-
+* sqlite3
 
 
 
