@@ -129,6 +129,13 @@ def show_start_screen(screen, font):
             if event.type == KEYDOWN:
                 waiting = False
 
+def display_timer(start_time, screen, font):
+    # Calculate elapsed time in milliseconds
+    elapsed_time = (pygame.time.get_ticks() - start_time) // 1000  # Convert to seconds
+    minutes = elapsed_time // 60
+    seconds = elapsed_time % 60
+    timer_surface = font.render(f"Time: {minutes:02}:{seconds:02}", True, (255, 255, 255))
+    screen.blit(timer_surface, (SCREEN_WIDTH - 150, 10))  # Adjust p
 
 def game_loop(first_launch=False):
     font = pygame.font.SysFont(None, 40)
@@ -153,6 +160,7 @@ def game_loop(first_launch=False):
     clock = pygame.time.Clock()
     score = 0
     running = True
+    start_time = pygame.time.get_ticks()  # Initialize timer start time
 
     while running:
         clock.tick(15)
@@ -190,7 +198,9 @@ def game_loop(first_launch=False):
         pipe_group.draw(screen)
         ground_group.draw(screen)
 
-        display_score(score, screen, font)
+        display_score(score, screen, font)         # Display the score
+        display_timer(start_time, screen, font)    # Display the timer
+
         pygame.display.update()
 
         if (pygame.sprite.groupcollide(bird_group, ground_group, False, False, pygame.sprite.collide_mask) or
@@ -208,6 +218,7 @@ def game_loop(first_launch=False):
                         if event.key == K_r:
                             return game_loop(first_launch=False)
                 time.sleep(0.1)
+
 
 pygame.init()
 screen = pygame.display.set_mode((SCREEN_WIDTH, SCREEN_HEIGHT))
