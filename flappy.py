@@ -1,6 +1,7 @@
 import pygame, random, time
 from pygame.locals import *
 import sys
+import os
 
 # VARIABLES
 SCREEN_WIDTH = 400
@@ -15,6 +16,16 @@ GROUND_HEIGHT = 100
 PIPE_WIDTH = 80
 PIPE_HEIGHT = 500
 PIPE_GAP = 150
+
+print(os.getcwd())
+script_dir = os.path.dirname(os.path.abspath(__file__))
+try:
+    os.chdir(script_dir)
+    print(f"Changed directory to {script_dir}")
+except FileNotFoundError:
+    print(f"Directory {script_dir} does not exist")
+except Exception as e:
+    print(f"Failed to change directory: {e}")
 
 wing = 'assets/audio/wing.wav'
 hit = 'assets/audio/hit.wav'
