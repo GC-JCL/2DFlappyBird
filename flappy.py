@@ -3,9 +3,15 @@ from pygame.locals import *
 import sys
 import os
 
+# Initialize pygame
+pygame.init()
+
+# Get the screen resolution
+screen_info = pygame.display.Info()
+SCREEN_WIDTH = screen_info.current_w
+SCREEN_HEIGHT = screen_info.current_h
+
 # VARIABLES
-SCREEN_WIDTH = 400
-SCREEN_HEIGHT = 600
 SPEED = 20
 GRAVITY = 2.5
 GAME_SPEED = 15
@@ -45,6 +51,7 @@ class Bird(pygame.sprite.Sprite):
                                               (int(34 * 1.2), int(24 * 1.2))),
                        pygame.transform.scale(pygame.image.load('assets/sprites/bluebird-downflap.png').convert_alpha(),
                                               (int(34 * 1.2), int(24 * 1.2)))]
+
         self.speed = SPEED
         self.current_image = 0
         self.image = self.images[self.current_image]
@@ -140,13 +147,14 @@ def show_start_screen(screen, font):
             if event.type == KEYDOWN:
                 waiting = False
 
+
 def display_timer(start_time, screen, font):
-    # Calculate elapsed time in milliseconds
     elapsed_time = (pygame.time.get_ticks() - start_time) // 1000  # Convert to seconds
     minutes = elapsed_time // 60
     seconds = elapsed_time % 60
     timer_surface = font.render(f"Time: {minutes:02}:{seconds:02}", True, (255, 255, 255))
-    screen.blit(timer_surface, (SCREEN_WIDTH - 150, 10))  # Adjust p
+    screen.blit(timer_surface, (SCREEN_WIDTH - 150, 10))  # Adjust position
+
 
 def game_loop(first_launch=False):
     font = pygame.font.SysFont(None, 40)
@@ -171,7 +179,7 @@ def game_loop(first_launch=False):
     clock = pygame.time.Clock()
     score = 0
     running = True
-    start_time = pygame.time.get_ticks()  # Initialize timer start time
+    start_time = pygame.time.get_ticks()
 
     while running:
         clock.tick(15)
@@ -209,8 +217,8 @@ def game_loop(first_launch=False):
         pipe_group.draw(screen)
         ground_group.draw(screen)
 
-        display_score(score, screen, font)         # Display the score
-        display_timer(start_time, screen, font)    # Display the timer
+        display_score(score, screen, font)
+        display_timer(start_time, screen, font)
 
         pygame.display.update()
 
@@ -231,8 +239,8 @@ def game_loop(first_launch=False):
                 time.sleep(0.1)
 
 
-pygame.init()
-screen = pygame.display.set_mode((SCREEN_WIDTH, SCREEN_HEIGHT))
+# Set the display mode to fullscreen
+screen = pygame.display.set_mode((SCREEN_WIDTH, SCREEN_HEIGHT), pygame.FULLSCREEN)
 pygame.display.set_caption('Flappy Bird')
 
 BACKGROUND = pygame.image.load('assets/sprites/background-day.png')
