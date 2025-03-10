@@ -36,6 +36,26 @@ wing_sound = pygame.mixer.Sound(wing)
 hit_sound = pygame.mixer.Sound(hit)
 point_sound = pygame.mixer.Sound(point)
 
+# Set the display mode to fullscreen by default
+screen = pygame.display.set_mode((SCREEN_WIDTH, SCREEN_HEIGHT), pygame.FULLSCREEN)
+pygame.display.set_caption('Flappy Bird')
+
+BACKGROUND = pygame.image.load('assets/sprites/background-day.png')
+BACKGROUND = pygame.transform.scale(BACKGROUND, (SCREEN_WIDTH, SCREEN_HEIGHT))
+
+# Track fullscreen state
+is_fullscreen = True
+
+def toggle_fullscreen():
+    global is_fullscreen, screen
+    if is_fullscreen:
+        # Switch to windowed mode
+        screen = pygame.display.set_mode((SCREEN_WIDTH, SCREEN_HEIGHT), pygame.RESIZABLE)
+    else:
+        # Switch back to fullscreen mode
+        screen = pygame.display.set_mode((SCREEN_WIDTH, SCREEN_HEIGHT), pygame.FULLSCREEN)
+    is_fullscreen = not is_fullscreen
+
 class Bird(pygame.sprite.Sprite):
     def __init__(self):
         pygame.sprite.Sprite.__init__(self)
@@ -123,6 +143,8 @@ def game_over_popup(screen, score, font):
 
     screen.blit(game_over_surface1, game_over_rect1)
     screen.blit(game_over_surface2, game_over_rect2)
+    print(score)
+    return score
 
     # Add the "Press Any Key to Exit" message
     exit_message = font.render("Press Any Key to Exit", True, (255, 255, 255))
@@ -137,9 +159,13 @@ def game_over_popup(screen, score, font):
         for event in pygame.event.get():
             if event.type == QUIT:
                 pygame.quit()
+                with open("main.py") as file:
+                    exec(file.read())
                 sys.exit()
             if event.type == KEYDOWN:
                 pygame.quit()
+                with open("main.py") as file:
+                    exec(file.read())
                 sys.exit()
 
 
@@ -221,6 +247,10 @@ def game_loop(first_launch=False):
                     pygame.quit()
                     sys.exit()
 
+                # Toggle fullscreen/windowed mode with F11
+                if event.key == K_F11:
+                    toggle_fullscreen()
+
         screen.blit(BACKGROUND, (0, 0))
 
         if is_off_screen(ground_group.sprites()[0]):
@@ -267,13 +297,5 @@ def game_loop(first_launch=False):
                     if event.type == KEYDOWN:
                         pygame.quit()
                         sys.exit()
-
-
-# Set the display mode to fullscreen
-screen = pygame.display.set_mode((SCREEN_WIDTH, SCREEN_HEIGHT), pygame.FULLSCREEN)
-pygame.display.set_caption('Flappy Bird')
-
-BACKGROUND = pygame.image.load('assets/sprites/background-day.png')
-BACKGROUND = pygame.transform.scale(BACKGROUND, (SCREEN_WIDTH, SCREEN_HEIGHT))
 
 game_loop(first_launch=True)
