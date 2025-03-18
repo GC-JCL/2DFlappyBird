@@ -2,6 +2,32 @@ import pygame, random, time
 from pygame.locals import *
 import sys
 import os
+import logging
+from datetime import datetime
+
+# Create "logs" folder if it doesn't exist
+if not os.path.exists('logs'):
+    os.makedirs('logs')
+if not os.path.exists('logs/game'):
+        os.makedirs('logs/game')
+
+# Create a log file with timestamp
+timestamp = datetime.now().strftime('%Y%m%d-%H%M%S')
+log_filename = f"logs/game/{timestamp}.txt"
+
+# Set up logging to file
+logging.basicConfig(
+    filename=log_filename,
+    level=logging.DEBUG,
+    format='%(asctime)s - %(levelname)s - %(message)s',
+)
+
+# Redirect stdout and stderr to log file
+sys.stdout = open(log_filename, 'a')
+sys.stderr = open(log_filename, 'a')
+
+# Log the initial startup message
+logging.info("Game started")
 
 # Initialize pygame
 pygame.init()
@@ -12,20 +38,19 @@ SCREEN_WIDTH = screen_info.current_w  # Fullscreen width
 SCREEN_HEIGHT = screen_info.current_h  # Fullscreen height
 
 # VARIABLES
-SPEED = 20
+SPEED = 25 # simulation speed
 GRAVITY = 2.5
-GAME_SPEED = 15
+GAME_SPEED = 20 # bird speed
 
 GROUND_WIDTH = 2 * SCREEN_WIDTH
 GROUND_HEIGHT = 100
 
 PIPE_WIDTH = 150
 PIPE_HEIGHT = SCREEN_HEIGHT  # This should fill the screen height for better gameplay experience
-PIPE_GAP = 400
 
 BIRD_WIDTH = 34  # Default width of the bird
 BIRD_HEIGHT = 24  # Default height of the bird
-BIRD_SCALE = 2.5  # Scaling factor for the bird (optional for adjusting size)
+BIRD_SCALE = 2  # Scaling factor for the bird (optional for adjusting size)
 
 wing = 'assets/audio/wing.wav'
 hit = 'assets/audio/hit.wav'
@@ -46,6 +71,7 @@ BACKGROUND = pygame.transform.scale(BACKGROUND, (SCREEN_WIDTH, SCREEN_HEIGHT))
 # Track fullscreen state
 is_fullscreen = True
 
+
 def toggle_fullscreen():
     global is_fullscreen, screen
     if is_fullscreen:
@@ -55,6 +81,7 @@ def toggle_fullscreen():
         # Switch back to fullscreen mode
         screen = pygame.display.set_mode((SCREEN_WIDTH, SCREEN_HEIGHT), pygame.FULLSCREEN)
     is_fullscreen = not is_fullscreen
+
 
 class Bird(pygame.sprite.Sprite):
     def __init__(self):
@@ -122,9 +149,16 @@ def is_off_screen(sprite):
 
 
 def get_random_pipes(xpos):
-    size = random.randint(100, SCREEN_HEIGHT - PIPE_GAP - 100)
+    # Random gap size
+    gap_size = random.randint(150, 400)  # Dynamic gap size
+
+    # Ensure the pipes have enough room to fit in the screen
+    size = random.randint(100, SCREEN_HEIGHT - gap_size - 100)
+
+    # Create the pipes with the randomized gap
     pipe = Pipe(False, xpos, size)
-    pipe_inverted = Pipe(True, xpos, SCREEN_HEIGHT - size - PIPE_GAP)
+    pipe_inverted = Pipe(True, xpos, SCREEN_HEIGHT - size - gap_size)
+
     return pipe, pipe_inverted
 
 
@@ -159,13 +193,9 @@ def game_over_popup(screen, score, font):
         for event in pygame.event.get():
             if event.type == QUIT:
                 pygame.quit()
-                with open("main.py") as file:
-                    exec(file.read())
                 sys.exit()
             if event.type == KEYDOWN:
                 pygame.quit()
-                with open("main.py") as file:
-                    exec(file.read())
                 sys.exit()
 
 
@@ -266,7 +296,7 @@ def game_loop(first_launch=False):
             pipe_group.add(pipes[1])
             score += 1
             if score % 1 == 0:
-                GAME_SPEED = GAME_SPEED + 1.5
+                GAME_SPEED = GAME_SPEED + 0.6
             print(GAME_SPEED)
             point_sound.play()
 
@@ -297,5 +327,6 @@ def game_loop(first_launch=False):
                     if event.type == KEYDOWN:
                         pygame.quit()
                         sys.exit()
+
 
 game_loop(first_launch=True)
