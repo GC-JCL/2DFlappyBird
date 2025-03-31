@@ -38,9 +38,9 @@ SCREEN_WIDTH = screen_info.current_w
 SCREEN_HEIGHT = screen_info.current_h
 
 # VARIABLES
-SPEED = 25
-GRAVITY = 2.5
-GAME_SPEED = 10  # Reduced for better pacing
+SPEED = 10
+GRAVITY = 0.4
+GAME_SPEED = 10
 FRAME_RATE = 60
 
 GROUND_WIDTH = 2 * SCREEN_WIDTH
@@ -143,13 +143,8 @@ class Ground(pygame.sprite.Sprite):
 
 
 def get_random_pipes(xpos):
-    # Randomize gap size between pipes
-    gap_size = random.randint(200, 400)
-
-    # Randomize the pipe height (leaving space for the gap)
-    size = random.randint(100, SCREEN_HEIGHT - gap_size - 100)
-
-    # Return the pipes (top and bottom)
+    gap_size = random.randint(200, 400)  # Randomize gap size
+    size = random.randint(100, SCREEN_HEIGHT - gap_size - 100)  # Randomize pipe height
     return Pipe(False, xpos, size), Pipe(True, xpos, SCREEN_HEIGHT - size - gap_size)
 
 
@@ -162,7 +157,7 @@ def show_start_screen():
     screen.fill((0, 0, 0))
     font = pygame.font.SysFont(None, 80)
     text = font.render("Press SPACE to Start", True, (255, 255, 255))
-    text_rect = text.get_rect(center=(SCREEN_WIDTH // 2, SCREEN_HEIGHT // 3))  # Center the text
+    text_rect = text.get_rect(center=(SCREEN_WIDTH // 2, SCREEN_HEIGHT // 3))
     screen.blit(text, text_rect)
     pygame.display.update()
     waiting = True
@@ -171,11 +166,12 @@ def show_start_screen():
             if event.type == KEYDOWN and event.key == K_SPACE:
                 waiting = False
 
+
 def game_over_screen(score):
     screen.fill((0, 0, 0))
     font = pygame.font.SysFont(None, 80)
     text = font.render(f"Game Over! Score: {score}", True, (255, 255, 255))
-    text_rect = text.get_rect(center=(SCREEN_WIDTH // 2, SCREEN_HEIGHT // 3))  # Center the text
+    text_rect = text.get_rect(center=(SCREEN_WIDTH // 2, SCREEN_HEIGHT // 3))
     screen.blit(text, text_rect)
     pygame.display.update()
     time.sleep(2)
@@ -191,40 +187,25 @@ def game_loop():
 
     score = 0
     clock = pygame.time.Clock()
-
-    # Track the pipes the bird has passed to avoid multiple score increments
     passed_pipes = set()
-
-    # Set pipe spawn interval
-    pipe_spawn_delay = 3000  # Time between spawns in milliseconds
-    last_pipe_spawn_time = pygame.time.get_ticks()  # Get current time in milliseconds
+    pipe_spawn_delay = 3000
+    last_pipe_spawn_time = pygame.time.get_ticks()
 
     while True:
         clock.tick(FRAME_RATE)
-
         current_time = pygame.time.get_ticks()
 
-        # Spawn new pipes at intervals
         if current_time - last_pipe_spawn_time > pipe_spawn_delay:
-            xpos = SCREEN_WIDTH
-            pipe_top, pipe_bottom = get_random_pipes(xpos)
-            pipe_group.add(pipe_top, pipe_bottom)
-            last_pipe_spawn_time = current_time  # Update last spawn time
+            pipe_group.add(*get_random_pipes(SCREEN_WIDTH))
+            last_pipe_spawn_time = current_time
 
-        # Check if the bird has passed any pipes and update score
         for pipe in pipe_group:
-            # Only check pipes that the bird hasn't passed yet
-            if pipe.rect[0] + PIPE_WIDTH < bird.rect[0] and pipe not in passed_pipes:
-                # Create a unique identifier for each pipe pair
-                pipe_pair_id = (pipe.rect[0], pipe.rect[1])
+            if pipe.rect.right < bird.rect.left and pipe not in passed_pipes:
+                passed_pipes.add(pipe)
+                if len(passed_pipes) % 2 == 0:
+                    score += 1
+                    point_sound.play()
 
-                # If the bird passes either pipe, count the score once per pair
-                if pipe_pair_id not in passed_pipes:
-                    passed_pipes.add(pipe_pair_id)  # Mark this pipe pair as passed
-                    score += 1  # Increment the score
-                    point_sound.play()  # Play sound when score increases
-
-        # Handle events
         for event in pygame.event.get():
             if event.type == QUIT:
                 pygame.quit()
@@ -233,7 +214,6 @@ def game_loop():
                 bird.bump()
                 wing_sound.play()
 
-        # Update and draw game objects
         screen.blit(BACKGROUND, (0, 0))
         pipe_group.update()
         pipe_group.draw(screen)
@@ -244,13 +224,10 @@ def game_loop():
         display_score(score, screen, font)
         pygame.display.update()
 
-        # Handle collisions
         if pygame.sprite.spritecollideany(bird, pipe_group) or pygame.sprite.spritecollideany(bird, ground_group):
             hit_sound.play()
             game_over_screen(score)
             return
-
-
 
 
 game_loop()
