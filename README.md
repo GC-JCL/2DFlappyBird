@@ -1,5 +1,5 @@
 # Flappy Bird
-glitched score with framerate improvement
+playable
 ## Dependence:
 * pygame
 * sqlite3
