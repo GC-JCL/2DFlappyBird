@@ -9,7 +9,7 @@ from datetime import datetime
 if not os.path.exists('logs'):
     os.makedirs('logs')
 if not os.path.exists('logs/game'):
-        os.makedirs('logs/game')
+    os.makedirs('logs/game')
 
 # Create a log file with timestamp
 timestamp = datetime.now().strftime('%Y%m%d-%H%M%S')
@@ -34,24 +34,26 @@ pygame.init()
 
 # Get the screen resolution
 screen_info = pygame.display.Info()
-SCREEN_WIDTH = screen_info.current_w  # Fullscreen width
-SCREEN_HEIGHT = screen_info.current_h  # Fullscreen height
+SCREEN_WIDTH = screen_info.current_w
+SCREEN_HEIGHT = screen_info.current_h
 
 # VARIABLES
-SPEED = 25 # simulation speed
+SPEED = 25
 GRAVITY = 2.5
-GAME_SPEED = 20 # bird speed
+GAME_SPEED = 10  # Reduced for better pacing
+FRAME_RATE = 60
 
 GROUND_WIDTH = 2 * SCREEN_WIDTH
 GROUND_HEIGHT = 100
 
 PIPE_WIDTH = 150
-PIPE_HEIGHT = SCREEN_HEIGHT  # This should fill the screen height for better gameplay experience
+PIPE_HEIGHT = SCREEN_HEIGHT
 
-BIRD_WIDTH = 34  # Default width of the bird
-BIRD_HEIGHT = 24  # Default height of the bird
-BIRD_SCALE = 2  # Scaling factor for the bird (optional for adjusting size)
+BIRD_WIDTH = 34
+BIRD_HEIGHT = 24
+BIRD_SCALE = 2
 
+# Load sounds
 wing = 'assets/audio/wing.wav'
 hit = 'assets/audio/hit.wav'
 point = 'assets/audio/point.wav'
@@ -61,24 +63,24 @@ wing_sound = pygame.mixer.Sound(wing)
 hit_sound = pygame.mixer.Sound(hit)
 point_sound = pygame.mixer.Sound(point)
 
-# Set the display mode to fullscreen by default
+# Set display mode
 screen = pygame.display.set_mode((SCREEN_WIDTH, SCREEN_HEIGHT), pygame.FULLSCREEN)
 pygame.display.set_caption('Flappy Bird')
 
+# Load images
 BACKGROUND = pygame.image.load('assets/sprites/background-day.png')
 BACKGROUND = pygame.transform.scale(BACKGROUND, (SCREEN_WIDTH, SCREEN_HEIGHT))
+GROUND_IMAGE = pygame.image.load('assets/sprites/base.png')
+GROUND_IMAGE = pygame.transform.scale(GROUND_IMAGE, (GROUND_WIDTH, GROUND_HEIGHT))
 
-# Track fullscreen state
 is_fullscreen = True
 
 
 def toggle_fullscreen():
     global is_fullscreen, screen
     if is_fullscreen:
-        # Switch to windowed mode
         screen = pygame.display.set_mode((SCREEN_WIDTH, SCREEN_HEIGHT), pygame.RESIZABLE)
     else:
-        # Switch back to fullscreen mode
         screen = pygame.display.set_mode((SCREEN_WIDTH, SCREEN_HEIGHT), pygame.FULLSCREEN)
     is_fullscreen = not is_fullscreen
 
@@ -86,14 +88,10 @@ def toggle_fullscreen():
 class Bird(pygame.sprite.Sprite):
     def __init__(self):
         pygame.sprite.Sprite.__init__(self)
-        # Scale the bird images using the width and height variables
-        self.images = [pygame.transform.scale(pygame.image.load('assets/sprites/bluebird-upflap.png').convert_alpha(),
-                                              (int(BIRD_WIDTH * BIRD_SCALE), int(BIRD_HEIGHT * BIRD_SCALE))),
-                       pygame.transform.scale(pygame.image.load('assets/sprites/bluebird-midflap.png').convert_alpha(),
-                                              (int(BIRD_WIDTH * BIRD_SCALE), int(BIRD_HEIGHT * BIRD_SCALE))),
-                       pygame.transform.scale(pygame.image.load('assets/sprites/bluebird-downflap.png').convert_alpha(),
-                                              (int(BIRD_WIDTH * BIRD_SCALE), int(BIRD_HEIGHT * BIRD_SCALE)))]
-        self.speed = SPEED
+        self.images = [pygame.transform.scale(pygame.image.load(f'assets/sprites/bluebird-{flap}.png').convert_alpha(),
+                                              (int(BIRD_WIDTH * BIRD_SCALE), int(BIRD_HEIGHT * BIRD_SCALE)))
+                       for flap in ['upflap', 'midflap', 'downflap']]
+        self.speed = 0
         self.current_image = 0
         self.image = self.images[self.current_image]
         self.mask = pygame.mask.from_surface(self.image)
@@ -133,33 +131,26 @@ class Pipe(pygame.sprite.Sprite):
 class Ground(pygame.sprite.Sprite):
     def __init__(self, xpos):
         pygame.sprite.Sprite.__init__(self)
-        self.image = pygame.image.load('assets/sprites/base.png').convert_alpha()
-        self.image = pygame.transform.scale(self.image, (GROUND_WIDTH, GROUND_HEIGHT))
-        self.mask = pygame.mask.from_surface(self.image)
+        self.image = GROUND_IMAGE
         self.rect = self.image.get_rect()
         self.rect[0] = xpos
         self.rect[1] = SCREEN_HEIGHT - GROUND_HEIGHT
 
     def update(self):
         self.rect[0] -= GAME_SPEED
-
-
-def is_off_screen(sprite):
-    return sprite.rect[0] < -(sprite.rect[2])
+        if self.rect[0] <= -GROUND_WIDTH:
+            self.rect[0] = SCREEN_WIDTH
 
 
 def get_random_pipes(xpos):
-    # Random gap size
-    gap_size = random.randint(150, 400)  # Dynamic gap size
+    # Randomize gap size between pipes
+    gap_size = random.randint(200, 400)
 
-    # Ensure the pipes have enough room to fit in the screen
+    # Randomize the pipe height (leaving space for the gap)
     size = random.randint(100, SCREEN_HEIGHT - gap_size - 100)
 
-    # Create the pipes with the randomized gap
-    pipe = Pipe(False, xpos, size)
-    pipe_inverted = Pipe(True, xpos, SCREEN_HEIGHT - size - gap_size)
-
-    return pipe, pipe_inverted
+    # Return the pipes (top and bottom)
+    return Pipe(False, xpos, size), Pipe(True, xpos, SCREEN_HEIGHT - size - gap_size)
 
 
 def display_score(score, screen, font):
@@ -167,166 +158,99 @@ def display_score(score, screen, font):
     screen.blit(score_surface, (10, 10))
 
 
-def game_over_popup(screen, score, font):
-    game_over_surface1 = font.render("Game Over!", True, (255, 255, 255))
-    game_over_surface2 = font.render(f"Your Score: {score}", True, (255, 255, 255))
-
-    # Draw the game over message
-    game_over_rect1 = game_over_surface1.get_rect(center=(SCREEN_WIDTH // 2, SCREEN_HEIGHT // 2 - 50))
-    game_over_rect2 = game_over_surface2.get_rect(center=(SCREEN_WIDTH // 2, SCREEN_HEIGHT // 2 - 10))
-
-    screen.blit(game_over_surface1, game_over_rect1)
-    screen.blit(game_over_surface2, game_over_rect2)
-    print(score)
-    return score
-
-    # Add the "Press Any Key to Exit" message
-    exit_message = font.render("Press Any Key to Exit", True, (255, 255, 255))
-    exit_message_rect = exit_message.get_rect(center=(SCREEN_WIDTH // 2, SCREEN_HEIGHT // 2 + 50))
-    screen.blit(exit_message, exit_message_rect)
-
+def show_start_screen():
+    screen.fill((0, 0, 0))
+    font = pygame.font.SysFont(None, 80)
+    text = font.render("Press SPACE to Start", True, (255, 255, 255))
+    text_rect = text.get_rect(center=(SCREEN_WIDTH // 2, SCREEN_HEIGHT // 3))  # Center the text
+    screen.blit(text, text_rect)
     pygame.display.update()
-
-    # Wait for a key press and then quit
     waiting = True
     while waiting:
         for event in pygame.event.get():
-            if event.type == QUIT:
-                pygame.quit()
-                sys.exit()
-            if event.type == KEYDOWN:
-                pygame.quit()
-                sys.exit()
-
-
-def show_start_screen(screen, font):
-    start_surface = font.render("Press Any Key to Start", True, (255, 255, 255))
-    start_rect = start_surface.get_rect(center=(SCREEN_WIDTH // 2, SCREEN_HEIGHT // 2))
-    screen.blit(BACKGROUND, (0, 0))
-    screen.blit(start_surface, start_rect)
-    pygame.display.flip()
-
-    waiting = True
-    while waiting:
-        for event in pygame.event.get():
-            if event.type == QUIT:
-                pygame.quit()
-                sys.exit()
-            if event.type == KEYDOWN:
+            if event.type == KEYDOWN and event.key == K_SPACE:
                 waiting = False
 
+def game_over_screen(score):
+    screen.fill((0, 0, 0))
+    font = pygame.font.SysFont(None, 80)
+    text = font.render(f"Game Over! Score: {score}", True, (255, 255, 255))
+    text_rect = text.get_rect(center=(SCREEN_WIDTH // 2, SCREEN_HEIGHT // 3))  # Center the text
+    screen.blit(text, text_rect)
+    pygame.display.update()
+    time.sleep(2)
 
-def display_timer(start_time, screen, font):
-    elapsed_time = (pygame.time.get_ticks() - start_time) // 1000  # Convert to seconds
-    minutes = elapsed_time // 60
-    seconds = elapsed_time % 60
-    timer_surface = font.render(f"Time: {minutes:02}:{seconds:02}", True, (255, 255, 255))
-    screen.blit(timer_surface, (SCREEN_WIDTH - 150, 10))  # Adjust position
 
-
-def game_loop(first_launch=False):
-    global GAME_SPEED
+def game_loop():
+    show_start_screen()
     font = pygame.font.SysFont(None, 40)
-    if first_launch:
-        show_start_screen(screen, font)
-
-    bird_group = pygame.sprite.Group()
     bird = Bird()
-    bird_group.add(bird)
-
-    ground_group = pygame.sprite.Group()
-    for i in range(2):
-        ground = Ground(GROUND_WIDTH * i)
-        ground_group.add(ground)
-
+    bird_group = pygame.sprite.GroupSingle(bird)
+    ground_group = pygame.sprite.Group(Ground(0), Ground(GROUND_WIDTH))
     pipe_group = pygame.sprite.Group()
-    for i in range(2):
-        pipes = get_random_pipes(SCREEN_WIDTH * i + 800)
-        pipe_group.add(pipes[0])
-        pipe_group.add(pipes[1])
 
-    clock = pygame.time.Clock()
     score = 0
-    running = True
-    start_time = pygame.time.get_ticks()
+    clock = pygame.time.Clock()
 
-    last_update_time = time.time()
+    # Track the pipes the bird has passed to avoid multiple score increments
+    passed_pipes = set()
 
-    while running:
-        clock.tick(15)
+    # Set pipe spawn interval
+    pipe_spawn_delay = 3000  # Time between spawns in milliseconds
+    last_pipe_spawn_time = pygame.time.get_ticks()  # Get current time in milliseconds
 
-        # Track if the program has frozen for 3 seconds
-        if time.time() - last_update_time > 2:
-            print("Program froze for more than 3 seconds. Exiting...")
-            pygame.quit()
-            sys.exit()
+    while True:
+        clock.tick(FRAME_RATE)
 
-        last_update_time = time.time()
+        current_time = pygame.time.get_ticks()
 
+        # Spawn new pipes at intervals
+        if current_time - last_pipe_spawn_time > pipe_spawn_delay:
+            xpos = SCREEN_WIDTH
+            pipe_top, pipe_bottom = get_random_pipes(xpos)
+            pipe_group.add(pipe_top, pipe_bottom)
+            last_pipe_spawn_time = current_time  # Update last spawn time
+
+        # Check if the bird has passed any pipes and update score
+        for pipe in pipe_group:
+            # Only check pipes that the bird hasn't passed yet
+            if pipe.rect[0] + PIPE_WIDTH < bird.rect[0] and pipe not in passed_pipes:
+                # Create a unique identifier for each pipe pair
+                pipe_pair_id = (pipe.rect[0], pipe.rect[1])
+
+                # If the bird passes either pipe, count the score once per pair
+                if pipe_pair_id not in passed_pipes:
+                    passed_pipes.add(pipe_pair_id)  # Mark this pipe pair as passed
+                    score += 1  # Increment the score
+                    point_sound.play()  # Play sound when score increases
+
+        # Handle events
         for event in pygame.event.get():
             if event.type == QUIT:
                 pygame.quit()
                 sys.exit()
-            if event.type == KEYDOWN:
-                if event.key == K_SPACE or event.key == K_UP:
-                    bird.bump()
-                    wing_sound.play()
+            if event.type == KEYDOWN and event.key == K_SPACE:
+                bird.bump()
+                wing_sound.play()
 
-                # Handle Alt + F4 (Alt key + F4 key press)
-                if event.key == K_F4 and pygame.key.get_pressed()[K_LALT] or pygame.key.get_pressed()[K_RALT]:
-                    pygame.quit()
-                    sys.exit()
-
-                # Toggle fullscreen/windowed mode with F11
-                if event.key == K_F11:
-                    toggle_fullscreen()
-
+        # Update and draw game objects
         screen.blit(BACKGROUND, (0, 0))
-
-        if is_off_screen(ground_group.sprites()[0]):
-            ground_group.remove(ground_group.sprites()[0])
-            new_ground = Ground(GROUND_WIDTH - 20)
-            ground_group.add(new_ground)
-
-        if is_off_screen(pipe_group.sprites()[0]):
-            pipe_group.remove(pipe_group.sprites()[0])
-            pipe_group.remove(pipe_group.sprites()[0])
-            pipes = get_random_pipes(SCREEN_WIDTH * 2)
-            pipe_group.add(pipes[0])
-            pipe_group.add(pipes[1])
-            score += 1
-            if score % 1 == 0:
-                GAME_SPEED = GAME_SPEED + 0.6
-            print(GAME_SPEED)
-            point_sound.play()
-
-        bird_group.update()
-        ground_group.update()
         pipe_group.update()
-
-        bird_group.draw(screen)
         pipe_group.draw(screen)
+        ground_group.update()
         ground_group.draw(screen)
-
+        bird_group.update()
+        bird_group.draw(screen)
         display_score(score, screen, font)
-        display_timer(start_time, screen, font)
-
         pygame.display.update()
 
-        if (pygame.sprite.groupcollide(bird_group, ground_group, False, False, pygame.sprite.collide_mask) or
-                pygame.sprite.groupcollide(bird_group, pipe_group, False, False, pygame.sprite.collide_mask)):
+        # Handle collisions
+        if pygame.sprite.spritecollideany(bird, pipe_group) or pygame.sprite.spritecollideany(bird, ground_group):
             hit_sound.play()
-            time.sleep(1)
-            game_over_popup(screen, score, font)
-            pygame.display.update()
-            while True:
-                for event in pygame.event.get():
-                    if event.type == QUIT:
-                        pygame.quit()
-                        sys.exit()
-                    if event.type == KEYDOWN:
-                        pygame.quit()
-                        sys.exit()
+            game_over_screen(score)
+            return
 
 
-game_loop(first_launch=True)
+
+
+game_loop()
