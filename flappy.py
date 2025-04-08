@@ -63,17 +63,17 @@ wing_sound = pygame.mixer.Sound(wing)
 hit_sound = pygame.mixer.Sound(hit)
 point_sound = pygame.mixer.Sound(point)
 
-# Set display mode
-screen = pygame.display.set_mode((SCREEN_WIDTH, SCREEN_HEIGHT), pygame.FULLSCREEN)
+# Set display mode (start in windowed mode)
+screen = pygame.display.set_mode((SCREEN_WIDTH, SCREEN_HEIGHT), pygame.RESIZABLE)
 pygame.display.set_caption('Flappy Bird')
 
-# Load images
-BACKGROUND = pygame.image.load('assets/sprites/background-day.png')
+# Load images (scaled once)
+BACKGROUND = pygame.image.load('assets/sprites/background-day.png').convert()
 BACKGROUND = pygame.transform.scale(BACKGROUND, (SCREEN_WIDTH, SCREEN_HEIGHT))
-GROUND_IMAGE = pygame.image.load('assets/sprites/base.png')
+GROUND_IMAGE = pygame.image.load('assets/sprites/base.png').convert()
 GROUND_IMAGE = pygame.transform.scale(GROUND_IMAGE, (GROUND_WIDTH, GROUND_HEIGHT))
 
-is_fullscreen = True
+is_fullscreen = False
 
 
 def toggle_fullscreen():

@@ -1,5 +1,5 @@
 # Flappy Bird
-60 fps now available in all hardware
+playable
 ## Dependence:
 * pygame
 * sqlite3
