@@ -1,5 +1,5 @@
 # Flappy Bird
-## Dependence:
+## Dependences:
 * pygame
 * sqlite3
 
